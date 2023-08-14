@@ -7,30 +7,53 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
+import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 
-public class Mandelbrot extends JPanel {
+public class Mandelbrot extends JPanel implements ActionListener {
   // change controls from keyboard to mouse??
   JFrame frame;
+  Button resetButton;
   private BufferedImage buffer;
   public static final int WIDTH = 800;
   public static final int HEIGHT = 800;
   public static final int ITERATIONS = 100;
 
-  public static double startX = -2;
-  public static double startY = 2;
+  public static float startX = -2;
+  public static float startY = 2;
   public static double width = 4;
   public static double height = 4;
-  // public static double zoom = 1;
+  public static int zoom = 1;
 
   public static double dx = width / (WIDTH - 1);
   public static double dy = height / (HEIGHT - 1);
 
   public Mandelbrot() {
+    intializeKeyBindings();
+    resetButton = new Button("Reset");
+    resetButton.addActionListener(this);
+    add(resetButton);
+    render();
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    System.out.println("Resetting...");
+    startX = -2;
+    startY = 2;
+    width = 4;
+    height = 4;
+    zoom = 1;
+    dx = width / (WIDTH - 1);
+    dy = height / (HEIGHT - 1);
+    render();
+  }
+
+  public void intializeKeyBindings() {
     ActionMap actionMap = getActionMap();
     int condition = JComponent.WHEN_IN_FOCUSED_WINDOW;
     InputMap inputMap = getInputMap(condition);
@@ -55,7 +78,6 @@ public class Mandelbrot extends JPanel {
     actionMap.put(vkDown, new KeyAction(vkDown));
     actionMap.put(vkLeft, new KeyAction(vkLeft));
     actionMap.put(vkRight, new KeyAction(vkRight));
-    render();
   }
 
   private class KeyAction extends AbstractAction {
@@ -66,36 +88,40 @@ public class Mandelbrot extends JPanel {
     @Override
     public void actionPerformed(ActionEvent actionEvt) {
       String cmd = actionEvt.getActionCommand();
-      if (cmd.equals("VK_R")) {
-        // zoom -= 1;
-        width *= 1.2;
-        height *= 1.2;
-        startX *= 1.2;
-        startY *= 1.2;
-        dx = width / (WIDTH - 1);
-        dy = height / (HEIGHT - 1);
-        render();
-      } else if (cmd.equals("VK_T")) {
-        // zoom += 1;
-        width /= 1.2;
-        height /= 1.2;
-        startX /= 1.2;
-        startY /= 1.2;
-        dx = width / (WIDTH - 1);
-        dy = height / (HEIGHT - 1);
-        render();
-      } else if (cmd.equals("VK_UP")) {
-        startY += 0.1;
-        render();
-      } else if (cmd.equals("VK_DOWN")) {
-        startY -= 0.1;
-        render();
-      } else if (cmd.equals("VK_LEFT")) {
-        startX -= 0.1;
-        render();
-      } else if (cmd.equals("VK_RIGHT")) {
-        startX += 0.1;
-        render();
+
+      switch(cmd) {
+        case "VK_R":
+          width *= 1.2;
+          height *= 1.2;
+          zoom--;
+          dx = width / (WIDTH - 1);
+          dy = height / (HEIGHT - 1);
+          render();          
+          break;
+        case "VK_T":
+          width /= 1.2;
+          height /= 1.2;
+          zoom++;
+          dx = width / (WIDTH - 1);
+          dy = height / (HEIGHT - 1);
+          render();          
+          break;
+        case "VK_UP":
+          startY += (.2 / zoom);
+          render();          
+          break;
+        case "VK_DOWN":
+          startY -= (.2 / zoom);
+          render();          
+          break;
+        case "VK_LEFT":
+          startX -= (.2 / zoom);
+          render();          
+          break;
+        case "VK_RIGHT":
+          startX += (.2 / zoom);
+          render();          
+          break;
       }
     }
   }
@@ -105,7 +131,7 @@ public class Mandelbrot extends JPanel {
     g.drawImage(
       buffer, 
       0, 0, HEIGHT, WIDTH,
-      null);  
+      null);
   }
 
   public void render() {
